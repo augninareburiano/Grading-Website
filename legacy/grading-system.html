@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grading System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --page-bg-1: #f4e9d8;
+    --page-bg-2: #ece3f0;
+    --page-bg-3: #e9ddd0;
+    --panel: #fbf8f2;
+    --panel-soft: #f4efe4;
+    --sand: #e7dfd0;
+    --ink: #221f19;
+    --ink-muted: #928a7a;
+    --accent: #c3e85a;
+    --accent-ink: #3c4a15;
+    --gold-1: #f6c86a;
+    --gold-2: #eea23f;
+    --good: #6fae3e;
+    --warn: #d97757;
+    --warn-bg: #fbe9e2;
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --radius-sm: 9px;
+    --shadow: 0 10px 30px -12px rgba(60,50,30,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;min-height:100vh;color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  body{
+    background:
+      radial-gradient(1100px 600px at 15% -10%, var(--page-bg-1), transparent 60%),
+      radial-gradient(1000px 700px at 100% 10%, var(--page-bg-2), transparent 55%),
+      var(--page-bg-3);
+    min-height:100vh;
+  }
+  h1,h2,h3,.display{font-family:'Fraunces',serif;}
+  ::selection{background:var(--accent);color:var(--accent-ink);}
+  button{font-family:'Inter',sans-serif;cursor:pointer;}
+  input,select{font-family:'Inter',sans-serif;}
+  a{color:inherit;}
+
+  .shell{display:flex;gap:18px;padding:20px;max-width:1400px;margin:0 auto;align-items:flex-start;}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    width:252px;flex-shrink:0;background:var(--panel);border-radius:var(--radius-lg);
+    box-shadow:var(--shadow);padding:22px 16px;position:sticky;top:20px;
+    display:flex;flex-direction:column;min-height:calc(100vh - 40px);
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:2px 8px 16px 8px;margin-bottom:14px;border-bottom:1px solid var(--sand);}
+  .brand .mark{
+    width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--gold-1),var(--gold-2));
+    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:16px;color:#3a2a10;flex-shrink:0;
+  }
+  .brand .name{font-weight:700;font-size:15px;letter-spacing:-0.01em;}
+  .brand .sub{font-size:11px;color:var(--ink-muted);}
+
+  .nav-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-muted);padding:4px 12px;margin:8px 0 4px 0;font-weight:600;}
+
+  /* section switcher */
+  .section-switch{padding:0 2px 14px 2px;border-bottom:1px solid var(--sand);margin-bottom:6px;}
+  .section-select-row{display:flex;gap:6px;}
+  #sectionSelect{flex:1;min-width:0;font-size:13px;font-weight:600;padding:9px 10px;border-radius:11px;background:var(--panel-soft);border:1px solid var(--sand);color:var(--ink);}
+  .add-section-btn{flex-shrink:0;width:34px;height:34px;border-radius:10px;background:var(--ink);color:var(--panel);border:none;font-size:16px;font-weight:600;line-height:1;}
+  .add-section-btn:hover{opacity:.85;}
+  .section-meta{font-size:11px;color:var(--ink-muted);margin-top:7px;padding:0 2px;}
+
+  .nav-item{
+    display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;color:var(--ink);
+    font-size:13.5px;font-weight:500;margin-bottom:3px;background:none;border:none;width:100%;text-align:left;
+    transition:background .15s;
+  }
+  .nav-item .ic{width:20px;height:20px;flex-shrink:0;opacity:.75;}
+  .nav-item:hover{background:var(--panel-soft);}
+  .nav-item.active{background:var(--ink);color:var(--panel);}
+  .nav-item.active .ic{opacity:1;filter:invert(1);}
+
+  .sidebar-foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--sand);}
+  .course-chip{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:12px;background:var(--panel-soft);}
+  .course-chip .dot{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#8fbf3a);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--accent-ink);}
+  .course-chip .txt{overflow:hidden;}
+  .course-chip .txt .t1{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .course-chip .txt .t2{font-size:10.5px;color:var(--ink-muted);}
+
+  /* ---------- MAIN ---------- */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px;}
+
+  .topbar{
+    background:var(--panel);border-radius:var(--radius-lg);box-shadow:var(--shadow);
+    padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  }
+  .search{
+    flex:1;display:flex;align-items:center;gap:10px;background:var(--panel-soft);border-radius:12px;
+    padding:10px 14px;color:var(--ink-muted);font-size:13px;max-width:420px;
+  }
+  .kbd{background:var(--panel);border:1px solid var(--sand);border-radius:8px;padding:3px 8px;font-size:11px;color:var(--ink-muted);font-family:'JetBrains Mono',monospace;}
+
+  .hero{
+    border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:34px 36px;position:relative;overflow:hidden;
+    background:linear-gradient(120deg,var(--gold-1) 0%,var(--gold-2) 55%,#e2b25a 100%);
+    color:#3a2a10;
+  }
+  .hero .eyebrow{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;margin-bottom:16px;}
+  .hero .eyebrow .badge{width:22px;height:22px;border-radius:7px;background:rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;font-size:12px;}
+  .hero h2{font-size:34px;font-weight:600;font-style:italic;margin:0 0 8px 0;line-height:1.1;max-width:560px;}
+  .hero p{margin:0;font-size:14px;color:#4a3818;max-width:480px;}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:900px){.grid{grid-template-columns:1fr;}}
+
+  .card{background:var(--panel);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:22px;}
+  .card h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-muted);margin:0 0 16px 0;font-weight:600;font-family:'Inter',sans-serif;}
+  .card h3 .count{color:var(--ink);font-family:'JetBrains Mono',monospace;text-transform:none;letter-spacing:0;}
+
+  .row-form{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  input[type=text], input[type=number], input[type=search]{
+    background:var(--panel-soft);border:1px solid var(--sand);color:var(--ink);border-radius:10px;
+    padding:9px 12px;font-size:13px;outline:none;
+  }
+  input:focus{border-color:var(--gold-2);}
+  input::placeholder{color:#b0a790;}
+
+  .search-box{position:relative;margin-bottom:12px;}
+  .search-box input{width:100%;padding-left:32px;}
+  .search-box svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink-muted);}
+
+  .btn{
+    background:var(--ink);color:var(--panel);border:none;border-radius:10px;padding:10px 16px;
+    font-size:13px;font-weight:600;transition:opacity .15s,transform .1s;
+  }
+  .btn:hover{opacity:.85;}
+  .btn:active{transform:scale(.97);}
+  .btn-ghost{background:transparent;border:1px solid var(--sand);color:var(--ink);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:500;}
+  .btn-ghost:hover{border-color:var(--ink);}
+  .btn-icon{background:transparent;border:none;color:var(--ink-muted);padding:4px 8px;border-radius:8px;font-size:14px;}
+  .btn-icon:hover{color:var(--warn);background:var(--warn-bg);}
+  .btn-icon.edit:hover{color:var(--gold-2);background:var(--panel-soft);}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;color:var(--ink-muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid var(--sand);position:sticky;top:0;background:var(--panel);}
+  td{padding:9px 10px;border-bottom:1px solid var(--sand);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr.active-row{background:var(--panel-soft);}
+  .list-empty{color:var(--ink-muted);font-size:13px;padding:14px 4px;font-style:italic;}
+  .scroll-list{max-height:360px;overflow-y:auto;}
+
+  .pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-family:'JetBrains Mono',monospace;background:var(--panel-soft);color:var(--ink);}
+
+  .weight-bar{display:flex;height:10px;border-radius:6px;overflow:hidden;width:100%;background:var(--panel-soft);margin:10px 0 4px 0;}
+  .weight-seg{height:100%;transition:width .3s;}
+  .weight-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--ink-muted);font-family:'JetBrains Mono',monospace;}
+  .weight-legend .dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle;}
+  .weight-warn{color:var(--warn);font-size:12px;margin-top:6px;font-family:'JetBrains Mono',monospace;}
+
+  .matrix-wrap{overflow-x:auto;max-height:560px;overflow-y:auto;}
+  .matrix th, .matrix td{white-space:nowrap;}
+  .matrix th:first-child, .matrix td:first-child{position:sticky;left:0;background:var(--panel);z-index:2;}
+  .score-input{width:56px;text-align:center;padding:6px 4px;}
+  .cat-header{color:var(--gold-2);font-size:10px;font-weight:700;}
+
+  .grade-card{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:var(--panel-soft);border-radius:14px;margin-bottom:8px;}
+  .grade-card .name{font-weight:600;font-size:14px;}
+  .grade-card .breakdown{font-size:11px;color:var(--ink-muted);font-family:'JetBrains Mono',monospace;margin-top:3px;}
+  .grade-badge{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;padding:6px 14px;border-radius:10px;min-width:78px;text-align:center;}
+
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--ink);border:none;color:var(--accent);
+    padding:10px 16px;border-radius:12px;font-size:12px;font-family:'JetBrains Mono',monospace;opacity:0;transform:translateY(8px);
+    transition:opacity .25s, transform .25s;pointer-events:none;z-index:50;box-shadow:var(--shadow);}
+  .toast.show{opacity:1;transform:translateY(0);}
+
+  select{background:var(--panel-soft);border:1px solid var(--sand);color:var(--ink);border-radius:10px;padding:9px 12px;font-size:13px;}
+
+  @media print{
+    body{background:#fff;}
+    .sidebar, .no-print, .hero, .topbar{display:none !important;}
+    .shell{padding:0;max-width:100%;}
+    .card{background:#fff;box-shadow:none;border:1px solid #ddd;}
+    .grade-card{background:#fafafa;border:1px solid #eee;}
+  }
+  @media (max-width:860px){
+    .shell{flex-direction:column;padding:12px;}
+    .sidebar{width:100%;position:relative;top:0;min-height:auto;flex-direction:column;}
+    .hero h2{font-size:26px;}
+    .hero{padding:26px 22px;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="sidebar no-print">
+    <div class="brand">
+      <div class="mark">G</div>
+      <div>
+        <div class="name">Gradebook</div>
+        <div class="sub">Multi-section tracker</div>
+      </div>
+    </div>
+
+    <div class="section-switch">
+      <div class="nav-label" style="padding-left:0;">Section / Block</div>
+      <div class="section-select-row">
+        <select id="sectionSelect"></select>
+        <button class="add-section-btn" id="addSectionBtn" title="Add a new section">+</button>
+      </div>
+      <div class="section-meta" id="sectionMeta">0 students</div>
+    </div>
+
+    <div class="nav-label">Sections</div>
+    <button class="nav-item active" data-page="setup">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M9 9v11"/></svg>
+      Setup
+    </button>
+    <button class="nav-item" data-page="grades">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V6a2 2 0 0 1 2-2h9l5 5v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M9 13l2 2 4-4"/></svg>
+      Grades
+    </button>
+    <button class="nav-item" data-page="reports">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 3 5-7"/></svg>
+      Reports
+    </button>
+
+    <div class="sidebar-foot">
+      <div class="course-chip">
+        <div class="dot" id="courseInitial">S</div>
+        <div class="txt">
+          <div class="t1" id="courseTitleDisplay">Section 1</div>
+          <div class="t2" id="totalCountDisplay">Saved locally</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <div class="topbar no-print">
+      <div class="search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <span id="topbarHint">Setup — students, categories &amp; assignments</span>
+      </div>
+      <span class="kbd">⌘ + S saves automatically</span>
+    </div>
+
+    <!-- SETUP PAGE -->
+    <div class="page" id="page-setup">
+      <div class="hero">
+        <div class="eyebrow"><span class="badge">✓</span> Setup</div>
+        <h2 id="setupHeroTitle">Build this section, once.</h2>
+        <p>Rename this section, add its students, set grade categories and weights, then list assignments under each. Every section keeps its own setup — nothing here affects the others.</p>
+      </div>
+
+      <div class="card">
+        <h3>Sections / blocks</h3>
+        <div class="row-form">
+          <input type="text" id="newSectionInput" placeholder="New section name (e.g. Grade 9 - Block A)" style="flex:1;min-width:200px;">
+          <button class="btn" id="addSectionBtn2">Add section</button>
+        </div>
+        <table><tbody id="sectionList"></tbody></table>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>This section's name</h3>
+          <div class="row-form">
+            <input type="text" id="courseNameInput" placeholder="e.g. Grade 9 - Block A" style="flex:1;min-width:180px;">
+            <button class="btn" id="saveCourseName">Save</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Students <span class="count" id="studentCountTag"></span></h3>
+          <div class="row-form">
+            <input type="text" id="studentNameInput" placeholder="Student name" style="flex:1;">
+            <button class="btn" id="addStudentBtn">Add</button>
+          </div>
+          <div class="search-box">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input type="search" id="studentSearchSetup" placeholder="Search students in this section...">
+          </div>
+          <div class="scroll-list"><table><tbody id="studentList"></tbody></table></div>
+          <div id="studentEmpty" class="list-empty">No students yet — add your first one above.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Grade categories &amp; weights</h3>
+        <div class="row-form">
+          <input type="text" id="catNameInput" placeholder="Category name (e.g. Quizzes)" style="flex:1;min-width:160px;">
+          <input type="number" id="catWeightInput" placeholder="Weight %" style="width:100px;" min="0" max="100">
+          <button class="btn" id="addCatBtn">Add category</button>
+        </div>
+        <table><tbody id="catList"></tbody></table>
+        <div id="catEmpty" class="list-empty">No categories yet — e.g. Quizzes 20%, Essays 30%, Projects 30%, Exams 20%.</div>
+        <div class="weight-bar" id="weightBar"></div>
+        <div class="weight-legend" id="weightLegend"></div>
+        <div id="weightWarn" class="weight-warn" style="display:none;"></div>
+      </div>
+
+      <div class="card">
+        <h3>Assignments</h3>
+        <div class="row-form">
+          <input type="text" id="assignNameInput" placeholder="Assignment name" style="flex:1;min-width:160px;">
+          <select id="assignCatSelect"></select>
+          <input type="number" id="assignMaxInput" placeholder="Max score" style="width:100px;" min="1" value="100">
+          <button class="btn" id="addAssignBtn">Add assignment</button>
+        </div>
+        <table><tbody id="assignList"></tbody></table>
+        <div id="assignEmpty" class="list-empty">No assignments yet — add categories first, then assignments under them.</div>
+      </div>
+    </div>
+
+    <!-- GRADES PAGE -->
+    <div class="page" id="page-grades" style="display:none;">
+      <div class="hero">
+        <div class="eyebrow"><span class="badge">✎</span> Grades</div>
+        <h2 id="gradesHeroTitle">Enter today's scores.</h2>
+        <p>Leave a box blank for not-yet-graded work, or check "exc." to exclude an assignment from a student's average entirely.</p>
+      </div>
+      <div class="card">
+        <div class="search-box" style="max-width:340px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="search" id="studentSearchGrades" placeholder="Search students...">
+        </div>
+        <div class="matrix-wrap">
+          <table class="matrix" id="gradesMatrix"></table>
+          <div id="matrixEmpty" class="list-empty">Add students and assignments in Setup first.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTS PAGE -->
+    <div class="page" id="page-reports" style="display:none;">
+      <div class="hero">
+        <div class="eyebrow"><span class="badge">◎</span> Reports</div>
+        <h2 id="reportsHeroTitle">See how this section is doing.</h2>
+        <p id="reportSub">Weighted final grades by category, ready to print or hand out.</p>
+      </div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+          <div class="search-box no-print" style="max-width:300px;margin-bottom:0;flex:1;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input type="search" id="studentSearchReports" placeholder="Search students...">
+          </div>
+          <button class="btn-ghost no-print" id="printBtn">Print grade sheet</button>
+        </div>
+        <div id="reportEmpty" class="list-empty">Nothing to report yet — add students, categories, and scores first.</div>
+        <div id="reportList"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast">Saved</div>
+
+<script>
+const COLORS = ['#c3e85a','#7aa6d6','#eea23f','#c19be0','#7fd6b0','#e08a9b'];
+const STORAGE_KEY = 'grading-system-data-v2';
+
+let state = {
+  activeSectionId: null,
+  sections: [] // {id, name, students:[], categories:[], assignments:[], scores:{}}
+};
+
+let searchSetup = '', searchGrades = '', searchReports = '';
+
+function uid(){ return Math.random().toString(36).slice(2,10); }
+
+function getActiveSection(){
+  return state.sections.find(s => s.id === state.activeSectionId) || null;
+}
+
+function ensureAtLeastOneSection(){
+  if(state.sections.length === 0){
+    const s = {id:uid(), name:'Section 1', students:[], categories:[], assignments:[], scores:{}};
+    state.sections.push(s);
+    state.activeSectionId = s.id;
+  } else if(!getActiveSection()){
+    state.activeSectionId = state.sections[0].id;
+  }
+}
+
+/* ---------- PERSISTENCE ---------- */
+let saveTimer = null;
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveState, 400);
+}
+async function saveState(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+    showToast('Saved');
+  }catch(e){ console.error('Save failed', e); }
+}
+async function loadState(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      if(parsed && Array.isArray(parsed.sections)) state = parsed;
+    }
+  }catch(e){ /* no existing data yet */ }
+  ensureAtLeastOneSection();
+  renderAll();
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=>t.classList.remove('show'), 1400);
+}
+
+/* ---------- NAV ---------- */
+const TOPBAR_HINTS = {
+  setup: 'Setup — students, categories & assignments',
+  grades: 'Grades — enter scores',
+  reports: 'Reports — final grades & printable sheet'
+};
+document.querySelectorAll('.nav-item').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.page').forEach(p=>p.style.display='none');
+    document.getElementById('page-'+btn.dataset.page).style.display='block';
+    document.getElementById('topbarHint').textContent = TOPBAR_HINTS[btn.dataset.page];
+    if(btn.dataset.page==='grades') renderGradesMatrix();
+    if(btn.dataset.page==='reports') renderReports();
+  });
+});
+
+/* ---------- SECTION SWITCHER ---------- */
+document.getElementById('sectionSelect').addEventListener('change', (e)=>{
+  state.activeSectionId = e.target.value;
+  scheduleSave();
+  renderAll();
+});
+document.getElementById('addSectionBtn').addEventListener('click', quickAddSection);
+document.getElementById('addSectionBtn2').addEventListener('click', addSectionFromForm);
+
+function quickAddSection(){
+  const name = prompt('Name for the new section/block:', 'New Section');
+  if(!name || !name.trim()) return;
+  const s = {id:uid(), name:name.trim(), students:[], categories:[], assignments:[], scores:{}};
+  state.sections.push(s);
+  state.activeSectionId = s.id;
+  scheduleSave();
+  renderAll();
+}
+function addSectionFromForm(){
+  const input = document.getElementById('newSectionInput');
+  const name = input.value.trim();
+  if(!name) return;
+  const s = {id:uid(), name, students:[], categories:[], assignments:[], scores:{}};
+  state.sections.push(s);
+  state.activeSectionId = s.id;
+  input.value='';
+  scheduleSave();
+  renderAll();
+}
+function switchToSection(id){
+  state.activeSectionId = id;
+  scheduleSave();
+  renderAll();
+}
+function renameSection(id){
+  const sec = state.sections.find(s=>s.id===id);
+  if(!sec) return;
+  const name = prompt('Rename section:', sec.name);
+  if(!name || !name.trim()) return;
+  sec.name = name.trim();
+  scheduleSave();
+  renderAll();
+}
+function removeSection(id){
+  if(state.sections.length <= 1){ alert("You need at least one section."); return; }
+  const sec = state.sections.find(s=>s.id===id);
+  if(!confirm(`Delete "${sec.name}" and all its students, grades, and assignments? This can't be undone.`)) return;
+  state.sections = state.sections.filter(s=>s.id!==id);
+  if(state.activeSectionId===id) state.activeSectionId = state.sections[0].id;
+  scheduleSave();
+  renderAll();
+}
+function renderSectionSwitcher(){
+  const sel = document.getElementById('sectionSelect');
+  sel.innerHTML = state.sections.map(s=>`<option value="${s.id}" ${s.id===state.activeSectionId?'selected':''}>${escapeHtml(s.name)}</option>`).join('');
+  const active = getActiveSection();
+  document.getElementById('sectionMeta').textContent = active ? `${active.students.length} student${active.students.length===1?'':'s'}` : '';
+
+  const totalStudents = state.sections.reduce((sum,s)=>sum+s.students.length,0);
+  document.getElementById('totalCountDisplay').textContent = `${state.sections.length} section${state.sections.length===1?'':'s'} · ${totalStudents} total`;
+  document.getElementById('courseTitleDisplay').textContent = active ? active.name : '—';
+  document.getElementById('courseInitial').textContent = active ? active.name.charAt(0).toUpperCase() : 'S';
+
+  document.getElementById('setupHeroTitle').textContent = active ? `Build ${active.name}, once.` : 'Build this section, once.';
+  document.getElementById('gradesHeroTitle').textContent = active ? `Enter scores for ${active.name}.` : "Enter today's scores.";
+  document.getElementById('reportsHeroTitle').textContent = active ? `See how ${active.name} is doing.` : 'See how this section is doing.';
+}
+function renderSectionList(){
+  const tbody = document.getElementById('sectionList');
+  tbody.innerHTML = state.sections.map(s=>{
+    const isActive = s.id===state.activeSectionId;
+    return `<tr class="${isActive?'active-row':''}">
+      <td style="width:20px;">${isActive?'<span style="color:var(--good);">●</span>':''}</td>
+      <td style="font-weight:600;cursor:pointer;" onclick="switchToSection('${s.id}')">${escapeHtml(s.name)}</td>
+      <td style="color:var(--ink-muted);font-family:'JetBrains Mono',monospace;">${s.students.length} students</td>
+      <td style="text-align:right;white-space:nowrap;">
+        <button class="btn-icon edit" onclick="renameSection('${s.id}')" title="Rename">✎</button>
+        <button class="btn-icon" onclick="removeSection('${s.id}')" title="Delete">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ---------- COURSE / SECTION NAME (in Setup card) ---------- */
+document.getElementById('saveCourseName').addEventListener('click', ()=>{
+  const active = getActiveSection();
+  const v = document.getElementById('courseNameInput').value.trim();
+  if(v && active){
+    active.name = v;
+    scheduleSave();
+    renderAll();
+    showToast('Section name updated');
+  }
+});
+
+/* ---------- STUDENTS ---------- */
+document.getElementById('addStudentBtn').addEventListener('click', addStudent);
+document.getElementById('studentNameInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addStudent(); });
+function addStudent(){
+  const active = getActiveSection();
+  const input = document.getElementById('studentNameInput');
+  const name = input.value.trim();
+  if(!name || !active) return;
+  active.students.push({id:uid(), name});
+  input.value='';
+  scheduleSave();
+  renderAll();
+}
+function removeStudent(id){
+  const active = getActiveSection();
+  if(!active) return;
+  active.students = active.students.filter(s=>s.id!==id);
+  Object.keys(active.scores).forEach(k=>{ if(k.startsWith(id+'_')) delete active.scores[k]; });
+  scheduleSave();
+  renderAll();
+}
+document.getElementById('studentSearchSetup').addEventListener('input', e=>{ searchSetup = e.target.value.toLowerCase(); renderStudents(); });
+function renderStudents(){
+  const active = getActiveSection();
+  const tbody = document.getElementById('studentList');
+  tbody.innerHTML = '';
+  if(!active){ document.getElementById('studentEmpty').style.display='block'; return; }
+  const filtered = active.students.filter(s => s.name.toLowerCase().includes(searchSetup));
+  filtered.forEach(s=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(s.name)}</td><td style="text-align:right;width:36px;"><button class="btn-icon" onclick="removeStudent('${s.id}')">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('studentCountTag').textContent = `(${active.students.length})`;
+  document.getElementById('studentEmpty').style.display = filtered.length ? 'none' : 'block';
+  document.getElementById('studentEmpty').textContent = active.students.length ? 'No students match your search.' : 'No students yet — add your first one above.';
+}
+
+/* ---------- CATEGORIES ---------- */
+document.getElementById('addCatBtn').addEventListener('click', addCategory);
+function addCategory(){
+  const active = getActiveSection();
+  const nameInput = document.getElementById('catNameInput');
+  const weightInput = document.getElementById('catWeightInput');
+  const name = nameInput.value.trim();
+  const weight = parseFloat(weightInput.value);
+  if(!name || isNaN(weight) || weight<0 || !active) return;
+  active.categories.push({id:uid(), name, weight});
+  nameInput.value=''; weightInput.value='';
+  scheduleSave();
+  renderAll();
+}
+function removeCategory(id){
+  const active = getActiveSection();
+  if(!active) return;
+  active.categories = active.categories.filter(c=>c.id!==id);
+  const removedAssignIds = active.assignments.filter(a=>a.categoryId===id).map(a=>a.id);
+  active.assignments = active.assignments.filter(a=>a.categoryId!==id);
+  Object.keys(active.scores).forEach(k=>{
+    const aId = k.split('_')[1];
+    if(removedAssignIds.includes(aId)) delete active.scores[k];
+  });
+  scheduleSave();
+  renderAll();
+}
+function renderCategories(){
+  const active = getActiveSection();
+  const tbody = document.getElementById('catList');
+  tbody.innerHTML='';
+  if(!active) return;
+  active.categories.forEach((c,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><span class="pill" style="color:${COLORS[i%COLORS.length]};border:1px solid ${COLORS[i%COLORS.length]}55;">${escapeHtml(c.name)}</span></td>
+      <td style="font-family:'JetBrains Mono',monospace;">${c.weight}%</td>
+      <td style="text-align:right;width:36px;"><button class="btn-icon" onclick="removeCategory('${c.id}')">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('catEmpty').style.display = active.categories.length ? 'none' : 'block';
+
+  const bar = document.getElementById('weightBar');
+  const legend = document.getElementById('weightLegend');
+  bar.innerHTML=''; legend.innerHTML='';
+  const total = active.categories.reduce((s,c)=>s+Number(c.weight||0),0);
+  active.categories.forEach((c,i)=>{
+    const seg = document.createElement('div');
+    seg.className='weight-seg';
+    seg.style.width = total>0 ? (c.weight/total*100)+'%' : '0%';
+    seg.style.background = COLORS[i%COLORS.length];
+    bar.appendChild(seg);
+    const leg = document.createElement('span');
+    leg.innerHTML = `<span class="dot" style="background:${COLORS[i%COLORS.length]}"></span>${escapeHtml(c.name)} ${c.weight}%`;
+    legend.appendChild(leg);
+  });
+  const warn = document.getElementById('weightWarn');
+  if(active.categories.length && total!==100){
+    warn.style.display='block';
+    warn.textContent = `Weights total ${total}% — adjust so categories add up to 100%.`;
+  } else {
+    warn.style.display='none';
+  }
+
+  const sel = document.getElementById('assignCatSelect');
+  sel.innerHTML = active.categories.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('') || '<option value="">No categories yet</option>';
+}
+
+/* ---------- ASSIGNMENTS ---------- */
+document.getElementById('addAssignBtn').addEventListener('click', addAssignment);
+function addAssignment(){
+  const active = getActiveSection();
+  const nameInput = document.getElementById('assignNameInput');
+  const maxInput = document.getElementById('assignMaxInput');
+  const catSelect = document.getElementById('assignCatSelect');
+  const name = nameInput.value.trim();
+  const categoryId = catSelect.value;
+  const max = parseFloat(maxInput.value) || 100;
+  if(!name || !categoryId || !active) return;
+  active.assignments.push({id:uid(), name, categoryId, max});
+  nameInput.value='';
+  scheduleSave();
+  renderAll();
+}
+function removeAssignment(id){
+  const active = getActiveSection();
+  if(!active) return;
+  active.assignments = active.assignments.filter(a=>a.id!==id);
+  Object.keys(active.scores).forEach(k=>{ if(k.endsWith('_'+id)) delete active.scores[k]; });
+  scheduleSave();
+  renderAll();
+}
+function renderAssignments(){
+  const active = getActiveSection();
+  const tbody = document.getElementById('assignList');
+  tbody.innerHTML='';
+  if(!active) return;
+  active.assignments.forEach(a=>{
+    const cat = active.categories.find(c=>c.id===a.categoryId);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(a.name)}</td>
+      <td><span class="pill">${cat?escapeHtml(cat.name):'—'}</span></td>
+      <td style="font-family:'JetBrains Mono',monospace;color:var(--ink-muted);">/ ${a.max}</td>
+      <td style="text-align:right;width:36px;"><button class="btn-icon" onclick="removeAssignment('${a.id}')">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('assignEmpty').style.display = active.assignments.length ? 'none' : 'block';
+}
+
+/* ---------- GRADES MATRIX ---------- */
+document.getElementById('studentSearchGrades').addEventListener('input', e=>{ searchGrades = e.target.value.toLowerCase(); renderGradesMatrix(); });
+function renderGradesMatrix(){
+  const active = getActiveSection();
+  const table = document.getElementById('gradesMatrix');
+  const empty = document.getElementById('matrixEmpty');
+  if(!active || !active.students.length || !active.assignments.length){
+    table.innerHTML=''; empty.style.display='block';
+    empty.textContent = 'Add students and assignments in Setup first.';
+    return;
+  }
+  const filtered = active.students.filter(s => s.name.toLowerCase().includes(searchGrades));
+  if(!filtered.length){
+    table.innerHTML=''; empty.style.display='block'; empty.textContent='No students match your search.'; return;
+  }
+  empty.style.display='none';
+  let head = '<thead><tr><th>Student</th>';
+  active.assignments.forEach(a=>{
+    const cat = active.categories.find(c=>c.id===a.categoryId);
+    head += `<th><div class="cat-header">${cat?escapeHtml(cat.name):''}</div>${escapeHtml(a.name)}<br><span style="color:var(--ink-muted);font-weight:400;">/ ${a.max}</span></th>`;
+  });
+  head += '</tr></thead>';
+  let body = '<tbody>';
+  filtered.forEach(s=>{
+    body += `<tr><td style="font-weight:600;">${escapeHtml(s.name)}</td>`;
+    active.assignments.forEach(a=>{
+      const key = s.id+'_'+a.id;
+      const entry = active.scores[key] || {score:null, excused:false};
+      body += `<td>
+        <input type="number" class="score-input" min="0" max="${a.max}"
+          value="${entry.score!==null && entry.score!==undefined ? entry.score : ''}"
+          ${entry.excused?'disabled':''}
+          onchange="setScore('${key}', this.value)" placeholder="—">
+        <label style="display:block;font-size:9px;color:var(--ink-muted);margin-top:2px;">
+          <input type="checkbox" ${entry.excused?'checked':''} onchange="setExcused('${key}', this.checked)" style="vertical-align:middle;"> exc.
+        </label>
+      </td>`;
+    });
+    body += '</tr>';
+  });
+  body += '</tbody>';
+  table.innerHTML = head + body;
+}
+function setScore(key, val){
+  const active = getActiveSection();
+  if(!active) return;
+  const num = val==='' ? null : Math.max(0, parseFloat(val));
+  if(!active.scores[key]) active.scores[key] = {score:null, excused:false};
+  active.scores[key].score = num;
+  scheduleSave();
+}
+function setExcused(key, checked){
+  const active = getActiveSection();
+  if(!active) return;
+  if(!active.scores[key]) active.scores[key] = {score:null, excused:false};
+  active.scores[key].excused = checked;
+  scheduleSave();
+  renderGradesMatrix();
+}
+
+/* ---------- COMPUTATION ---------- */
+function computeStudentGrade(section, studentId){
+  const catBreakdown = [];
+  let weightedSum = 0;
+  let weightUsed = 0;
+  section.categories.forEach(cat=>{
+    const catAssignments = section.assignments.filter(a=>a.categoryId===cat.id);
+    let earned=0, possible=0;
+    catAssignments.forEach(a=>{
+      const key = studentId+'_'+a.id;
+      const entry = section.scores[key];
+      if(entry && !entry.excused && entry.score!==null && entry.score!==undefined){
+        earned += Number(entry.score);
+        possible += Number(a.max);
+      }
+    });
+    const pct = possible>0 ? (earned/possible*100) : null;
+    catBreakdown.push({name:cat.name, weight:cat.weight, pct});
+    if(pct!==null){
+      weightedSum += pct * (cat.weight/100);
+      weightUsed += cat.weight;
+    }
+  });
+  const final = weightUsed>0 ? (weightedSum / (weightUsed/100)) : null;
+  return {final, catBreakdown};
+}
+function letterGrade(pct){
+  if(pct===null) return {letter:'—', color:'var(--ink-muted)'};
+  if(pct>=90) return {letter:'A', color:'var(--good)'};
+  if(pct>=80) return {letter:'B', color:'#7aa6d6'};
+  if(pct>=70) return {letter:'C', color:'#eea23f'};
+  if(pct>=60) return {letter:'D', color:'#e08a4f'};
+  return {letter:'F', color:'var(--warn)'};
+}
+
+/* ---------- REPORTS ---------- */
+document.getElementById('studentSearchReports').addEventListener('input', e=>{ searchReports = e.target.value.toLowerCase(); renderReports(); });
+function renderReports(){
+  const active = getActiveSection();
+  const list = document.getElementById('reportList');
+  const empty = document.getElementById('reportEmpty');
+  document.getElementById('reportSub').textContent = active ? `${active.name} — weighted final grades by category, ready to print or hand out.` : '';
+  if(!active || !active.students.length){ list.innerHTML=''; empty.style.display='block'; empty.textContent='Nothing to report yet — add students, categories, and scores first.'; return; }
+  const filtered = active.students.filter(s => s.name.toLowerCase().includes(searchReports));
+  if(!filtered.length){ list.innerHTML=''; empty.style.display='block'; empty.textContent='No students match your search.'; return; }
+  empty.style.display='none';
+  list.innerHTML = filtered.map(s=>{
+    const {final, catBreakdown} = computeStudentGrade(active, s.id);
+    const lg = letterGrade(final);
+    const breakdown = catBreakdown.map(c=>`${escapeHtml(c.name)}: ${c.pct!==null?c.pct.toFixed(1)+'%':'—'}`).join('  ·  ');
+    return `<div class="grade-card">
+      <div>
+        <div class="name">${escapeHtml(s.name)}</div>
+        <div class="breakdown">${breakdown || 'No categories set up'}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="grade-badge" style="background:${lg.color}22;color:${lg.color};">${final!==null?final.toFixed(1)+'%':'—'}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${lg.color};margin-top:4px;">${lg.letter}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+
+/* ---------- UTIL ---------- */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+function renderAll(){
+  const active = getActiveSection();
+  renderSectionSwitcher();
+  renderSectionList();
+  document.getElementById('courseNameInput').value = active ? active.name : '';
+  renderStudents();
+  renderCategories();
+  renderAssignments();
+  renderGradesMatrix();
+  renderReports();
+}
+
+loadState();
+</script>
+</body>
+</html>
