@@ -1,0 +1,20 @@
+rules_version = '2';
+
+// One document per teacher, at gradebooks/{uid}, holding that teacher's whole
+// gradebook. A signed-in user can read and write their own document and nothing
+// else — there is no path here that exposes one teacher's grades to another.
+//
+// Deploy with:  firebase deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /gradebooks/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Anything not matched above is denied. Keep it that way.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

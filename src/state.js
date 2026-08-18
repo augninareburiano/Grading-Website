@@ -1,21 +1,31 @@
 import { api } from './api/index.js';
 import { uid, showToast } from './utils.js';
+import { migrate, defaultCourse, defaultGrading, SCHEMA_VERSION } from './migrate.js';
 
 /**
  * The whole app's data.
  *
- * sections: [{
- *   id, name,
- *   students:    [{ id, name }],
- *   categories:  [{ id, name, weight }],          weight is a percentage
- *   assignments: [{ id, name, categoryId, max }],
- *   scores:      { "<studentId>_<assignmentId>": { score, excused } }
- * }]
+ * {
+ *   schemaVersion,
+ *   course:  { name, term },                        // shown on every printed report
+ *   grading: { scale, rounding, latePenalty },      // course-wide policy
+ *   activeSectionId,
+ *   sections: [{
+ *     id, name,
+ *     students:    [{ id, name, studentId, email }],
+ *     categories:  [{ id, name, weight, dropLowest }],   weight is a percentage
+ *     assignments: [{ id, name, categoryId, max, dueDate, type }],
+ *     scores:      { "<studentId>_<assignmentId>": { score, status, lateDays } }
+ *   }]
+ * }
  *
- * Exported as a const and always mutated in place — reassigning it would
- * leave every importing module pointing at the old object.
+ * Exported as a const and always mutated in place — reassigning it would leave
+ * every importing module pointing at the old object.
  */
 export const state = {
+  schemaVersion: SCHEMA_VERSION,
+  course: defaultCourse(),
+  grading: defaultGrading(),
   activeSectionId: null,
   sections: []
 };
@@ -49,24 +59,36 @@ export function scheduleSave() {
 }
 
 export async function saveState() {
+  clearTimeout(saveTimer); // a manual save cancels the pending debounced one
   try {
     await api.save(state);
     showToast('Saved');
   } catch (e) {
     console.error('Save failed', e);
-    showToast('Save failed — check the console');
+    // Surface the reason — with a backend this is usually "signed out" or offline,
+    // and a bare "Save failed" sends people hunting through the console.
+    showToast(`Save failed — ${e.message || 'check the console'}`);
   }
+}
+
+/** Replaces everything in place from a loaded (and migrated) snapshot. */
+function adopt(snapshot) {
+  state.schemaVersion = snapshot.schemaVersion;
+  state.course = snapshot.course;
+  state.grading = snapshot.grading;
+  state.activeSectionId = snapshot.activeSectionId;
+  state.sections = snapshot.sections;
 }
 
 export async function loadState() {
   try {
     const data = await api.load();
-    if (data && Array.isArray(data.sections)) {
-      state.sections = data.sections;
-      state.activeSectionId = data.activeSectionId;
-    }
+    // migrate() also normalises a fresh/empty load, so there is one code path.
+    adopt(migrate(data));
   } catch (e) {
     console.error('Load failed — starting with an empty gradebook', e);
+    adopt(migrate(null));
+    showToast(`Could not load — ${e.message || 'starting empty'}`);
   }
   ensureAtLeastOneSection();
 }

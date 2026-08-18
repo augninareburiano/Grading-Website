@@ -1,27 +1,27 @@
-import { renderGradesMatrix } from './grades.js';
-import { renderReports } from './reports.js';
+import { activatePage } from './render.js';
 
 const TOPBAR_HINTS = {
-  setup: 'Setup — students, categories & assignments',
+  setup: 'Setup — course, students, categories & assignments',
   grades: 'Grades — enter scores',
-  reports: 'Reports — final grades & printable sheet'
+  reports: 'Reports — final grades, statistics & printable sheets',
+  settings: 'Settings — grade scale, rounding & late work'
 };
 
 export function initNav() {
   document.querySelectorAll('.nav-item').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const page = btn.dataset.page;
-
-      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; });
-      document.getElementById('page-' + page).style.display = 'block';
-      document.getElementById('topbarHint').textContent = TOPBAR_HINTS[page];
-
-      // These two are cheap to redraw and always want the latest numbers.
-      if (page === 'grades') renderGradesMatrix();
-      if (page === 'reports') renderReports();
-    });
+    btn.addEventListener('click', () => showPage(btn.dataset.page));
   });
+}
+
+export function showPage(page) {
+  document.querySelectorAll('.nav-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.page === page);
+  });
+
+  document.querySelectorAll('.page').forEach(p => { p.style.display = 'none'; });
+  document.getElementById('page-' + page).style.display = 'block';
+  document.getElementById('topbarHint').textContent = TOPBAR_HINTS[page] || '';
+
+  // Redraws the page only if it fell out of date while it was hidden.
+  activatePage(page);
 }

@@ -17,7 +17,7 @@
       <div class="mark">G</div>
       <div>
         <div class="name">Gradebook</div>
-        <div class="sub">Multi-section tracker</div>
+        <div class="sub" id="brandSub">Multi-section tracker</div>
       </div>
     </div>
 
@@ -43,8 +43,13 @@
       <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 3 5-7"/></svg>
       Reports
     </button>
+    <button class="nav-item" data-page="settings">
+      <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2v.2a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 2.9-1.2V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+      Settings
+    </button>
 
     <div class="sidebar-foot">
+      <div id="authBox" class="auth-box" style="display:none;"></div>
       <div class="course-chip">
         <div class="dot" id="courseInitial">S</div>
         <div class="txt">
@@ -57,10 +62,12 @@
 
   <div class="main">
 
+    <div id="authBanner" class="auth-banner no-print" style="display:none;"></div>
+
     <div class="topbar no-print">
       <div class="search">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <span id="topbarHint">Setup — students, categories &amp; assignments</span>
+        <span id="topbarHint">Setup — course, students, categories &amp; assignments</span>
       </div>
       <span class="kbd">Changes save automatically</span>
     </div>
@@ -70,7 +77,31 @@
       <div class="hero">
         <div class="eyebrow"><span class="badge">✓</span> Setup</div>
         <h2 id="setupHeroTitle">Build this section, once.</h2>
-        <p>Rename this section, add its students, set grade categories and weights, then list assignments under each. Every section keeps its own setup — nothing here affects the others.</p>
+        <p>Name the course and term, add students with their ID numbers, set grade categories and weights, then list assignments under each. Every section keeps its own roster and assignments — the course details and grading policy are shared across all of them.</p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Course</h3>
+          <div class="field-row">
+            <label for="courseTitleInput">Course name</label>
+            <input type="text" id="courseTitleInput" placeholder="e.g. English 9">
+          </div>
+          <div class="field-row">
+            <label for="courseTermInput">Term / semester</label>
+            <input type="text" id="courseTermInput" placeholder="e.g. Fall 2026">
+          </div>
+          <p class="field-note">Printed at the top of every report and grade sheet.</p>
+        </div>
+
+        <div class="card">
+          <h3>This section's name</h3>
+          <div class="row-form">
+            <input type="text" id="courseNameInput" placeholder="e.g. Grade 9 - Block A" style="flex:1;min-width:180px;">
+            <button class="btn" id="saveCourseName">Save</button>
+          </div>
+          <p class="field-note">Use this for the block, period, or class this roster belongs to.</p>
+        </div>
       </div>
 
       <div class="card">
@@ -82,54 +113,102 @@
         <table><tbody id="sectionList"></tbody></table>
       </div>
 
-      <div class="grid">
-        <div class="card">
-          <h3>This section's name</h3>
+      <div class="card">
+        <h3>Students <span class="count" id="studentCountTag"></span></h3>
+        <div class="row-form">
+          <input type="text" id="studentNameInput" placeholder="Student name" style="flex:2;min-width:160px;">
+          <input type="text" id="studentIdInput" placeholder="ID number" style="flex:1;min-width:110px;">
+          <input type="email" id="studentEmailInput" placeholder="Email (optional)" style="flex:2;min-width:160px;">
+          <button class="btn" id="addStudentBtn">Add</button>
+          <button class="btn-ghost" id="importToggleBtn">Paste a list</button>
+        </div>
+
+        <div class="import-panel" id="importPanel" style="display:none;">
+          <label class="import-label" for="importText">
+            Paste a whole class at once — straight from a spreadsheet, or one name per line.
+          </label>
+          <textarea id="importText" rows="6" spellcheck="false"
+            placeholder="Ada Lovelace&#10;Grace Hopper&#10;Alan Turing&#10;&#10;…or with details, in any column order:&#10;Name,Student ID,Email&#10;Ada Lovelace,S-001,ada@example.edu"></textarea>
+
           <div class="row-form">
-            <input type="text" id="courseNameInput" placeholder="e.g. Grade 9 - Block A" style="flex:1;min-width:180px;">
-            <button class="btn" id="saveCourseName">Save</button>
+            <label class="file-pick">
+              <input type="file" id="importFile" accept=".csv,.tsv,.txt,text/csv,text/plain">
+              <span>Choose a file…</span>
+            </label>
+            <span id="importNameOrderRow" class="inline-field" style="display:none;">
+              <label for="importNameOrder">Names are</label>
+              <select id="importNameOrder">
+                <option value="auto">detected automatically</option>
+                <option value="first-last">First Last</option>
+                <option value="last-first">Last, First</option>
+              </select>
+            </span>
+          </div>
+
+          <div class="import-summary" id="importSummary"></div>
+          <div class="table-scroll">
+            <table class="import-preview" id="importPreview"></table>
+          </div>
+
+          <div class="row-form" style="margin-top:14px;">
+            <button class="btn" id="importConfirmBtn" disabled>Add students</button>
+            <button class="btn-ghost" id="importCancelBtn">Cancel</button>
+          </div>
+
+          <div class="row-form import-copy" id="copySectionRow" style="display:none;">
+            <span>Or copy the roster from</span>
+            <select id="copySectionSelect"></select>
+            <button class="btn-ghost" id="copySectionBtn">Copy students</button>
           </div>
         </div>
 
-        <div class="card">
-          <h3>Students <span class="count" id="studentCountTag"></span></h3>
-          <div class="row-form">
-            <input type="text" id="studentNameInput" placeholder="Student name" style="flex:1;">
-            <button class="btn" id="addStudentBtn">Add</button>
-          </div>
-          <div class="search-box">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-            <input type="search" id="studentSearchSetup" placeholder="Search students in this section...">
-          </div>
-          <div class="scroll-list"><table><tbody id="studentList"></tbody></table></div>
-          <div id="studentEmpty" class="list-empty">No students yet — add your first one above.</div>
+        <div class="search-box">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="search" id="studentSearchSetup" placeholder="Search by name, ID, or email...">
         </div>
+        <div class="scroll-list">
+          <table>
+            <thead><tr><th>Name</th><th>ID number</th><th>Email</th><th></th></tr></thead>
+            <tbody id="studentList"></tbody>
+          </table>
+        </div>
+        <div id="studentEmpty" class="list-empty">No students yet — add your first one above.</div>
       </div>
 
       <div class="card">
         <h3>Grade categories &amp; weights</h3>
         <div class="row-form">
           <input type="text" id="catNameInput" placeholder="Category name (e.g. Quizzes)" style="flex:1;min-width:160px;">
-          <input type="number" id="catWeightInput" placeholder="Weight %" style="width:100px;" min="0" max="100">
+          <input type="number" id="catWeightInput" placeholder="Weight %" style="width:100px;" min="0" max="100" step="0.5">
           <button class="btn" id="addCatBtn">Add category</button>
         </div>
-        <table><tbody id="catList"></tbody></table>
+        <table>
+          <thead><tr><th>Category</th><th>Weight %</th><th>Drop lowest</th><th>Assignments</th><th></th></tr></thead>
+          <tbody id="catList"></tbody>
+        </table>
         <div id="catEmpty" class="list-empty">No categories yet — e.g. Quizzes 20%, Essays 30%, Projects 30%, Exams 20%.</div>
         <div class="weight-bar" id="weightBar"></div>
         <div class="weight-legend" id="weightLegend"></div>
         <div id="weightWarn" class="weight-warn" style="display:none;"></div>
+        <div id="dropNote" class="field-note" style="display:none;"></div>
       </div>
 
       <div class="card">
         <h3>Assignments</h3>
         <div class="row-form">
-          <input type="text" id="assignNameInput" placeholder="Assignment name" style="flex:1;min-width:160px;">
-          <select id="assignCatSelect"></select>
-          <input type="number" id="assignMaxInput" placeholder="Max score" style="width:100px;" min="1" value="100">
+          <input type="text" id="assignNameInput" placeholder="Assignment name" style="flex:2;min-width:160px;">
+          <select id="assignCatSelect" aria-label="Category"></select>
+          <select id="assignTypeSelect" aria-label="Type"></select>
+          <input type="number" id="assignMaxInput" placeholder="Max" style="width:90px;" min="0" step="0.5" value="100" aria-label="Max score">
+          <input type="date" id="assignDueInput" style="width:150px;" aria-label="Due date">
           <button class="btn" id="addAssignBtn">Add assignment</button>
         </div>
-        <table><tbody id="assignList"></tbody></table>
+        <table>
+          <thead><tr><th>Assignment</th><th>Category</th><th>Type</th><th>Max</th><th>Due</th><th></th></tr></thead>
+          <tbody id="assignList"></tbody>
+        </table>
         <div id="assignEmpty" class="list-empty">No assignments yet — add categories first, then assignments under them.</div>
+        <p class="field-note">A max of 0 makes the assignment pure extra credit: every point scored is a bonus.</p>
       </div>
     </div>
 
@@ -138,37 +217,140 @@
       <div class="hero">
         <div class="eyebrow"><span class="badge">✎</span> Grades</div>
         <h2 id="gradesHeroTitle">Enter today's scores.</h2>
-        <p>Leave a box blank for not-yet-graded work, or check "exc." to exclude an assignment from a student's average entirely.</p>
+        <p>Leave a box blank for work you have not marked yet. Use the status under each score to mark work as <b>missing</b> (counts as zero) or <b>excused</b> (left out of the average). Scores above the maximum count as extra credit.</p>
       </div>
       <div class="card">
         <div class="search-box" style="max-width:340px;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
           <input type="search" id="studentSearchGrades" placeholder="Search students...">
         </div>
+        <div id="matrixLegend" class="matrix-legend"></div>
         <div class="matrix-wrap">
           <table class="matrix" id="gradesMatrix"></table>
           <div id="matrixEmpty" class="list-empty">Add students and assignments in Setup first.</div>
+        </div>
+        <div class="pager no-print" id="matrixPager" style="display:none;">
+          <span class="pager-info" id="matrixPagerInfo"></span>
+          <span class="pager-controls">
+            <button class="btn-ghost" data-page-nav="prev">‹ Prev</button>
+            <span class="pager-label" id="matrixPageLabel"></span>
+            <button class="btn-ghost" data-page-nav="next">Next ›</button>
+            <select id="matrixPageSize" aria-label="Students per page"></select>
+          </span>
         </div>
       </div>
     </div>
 
     <!-- REPORTS PAGE -->
     <div class="page" id="page-reports" style="display:none;">
-      <div class="hero">
+      <div class="hero no-print">
         <div class="eyebrow"><span class="badge">◎</span> Reports</div>
         <h2 id="reportsHeroTitle">See how this section is doing.</h2>
         <p id="reportSub">Weighted final grades by category, ready to print or hand out.</p>
       </div>
+
       <div class="card">
-        <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
-          <div class="search-box no-print" style="max-width:300px;margin-bottom:0;flex:1;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-            <input type="search" id="studentSearchReports" placeholder="Search students...">
+        <div class="print-head" data-course-heading style="display:none;"></div>
+
+        <div class="report-toolbar no-print">
+          <div class="tabs" id="reportTabs">
+            <button class="tab active" data-panel="students">Student reports</button>
+            <button class="tab" data-panel="sheet">Grade sheet</button>
+            <button class="tab" data-panel="stats">Class statistics</button>
+            <button class="tab" data-panel="assignment">By assignment</button>
           </div>
-          <button class="btn-ghost no-print" id="printBtn">Print grade sheet</button>
+          <div class="toolbar-actions">
+            <button class="btn-ghost" id="exportCsvBtn" title="Download the whole section as a spreadsheet">Export CSV</button>
+            <button class="btn-ghost" id="printBtn">Print</button>
+          </div>
         </div>
-        <div id="reportEmpty" class="list-empty">Nothing to report yet — add students, categories, and scores first.</div>
-        <div id="reportList"></div>
+
+        <div class="search-box no-print" id="reportSearchBox" style="max-width:320px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="search" id="studentSearchReports" placeholder="Search students...">
+        </div>
+
+        <div data-panel-body="students">
+          <div id="reportEmpty" class="list-empty">Nothing to report yet — add students, categories, and scores first.</div>
+          <div id="reportList"></div>
+        </div>
+
+        <div data-panel-body="sheet" style="display:none;">
+          <div id="sheetEmpty" class="list-empty"></div>
+          <div id="gradeSheet" class="table-scroll"></div>
+        </div>
+
+        <div data-panel-body="stats" style="display:none;">
+          <div id="statsEmpty" class="list-empty"></div>
+          <div id="statsSummary" class="stat-row"></div>
+          <div class="table-scroll">
+            <table class="sheet-table stats-table" id="statsTable"></table>
+          </div>
+          <p class="field-note">Averages cover graded work only — missing and not-yet-graded work is counted in its own column instead, so a newly set assignment does not look like a failure. Click a row to open that assignment.</p>
+        </div>
+
+        <div data-panel-body="assignment" style="display:none;">
+          <div class="row-form no-print">
+            <select id="assignmentPicker" style="flex:1;min-width:200px;" aria-label="Assignment"></select>
+            <button class="btn-ghost" id="exportAssignmentBtn">Export this assignment</button>
+          </div>
+          <div id="assignmentEmpty" class="list-empty"></div>
+          <div id="assignmentReport" class="table-scroll"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="page-settings" style="display:none;">
+      <div class="hero">
+        <div class="eyebrow"><span class="badge">⚙</span> Settings</div>
+        <h2>Set the rules once.</h2>
+        <p>Letter cutoffs, rounding, and the late-work rule apply to every section in this course. Drop-lowest is set per category over in Setup, because dropping a quiz is normal and dropping a final is not.</p>
+      </div>
+
+      <div class="card">
+        <h3>Grade scale</h3>
+        <div class="row-form">
+          <button class="btn-ghost" id="scalePresetDefault">Use A–F (90/80/70/60)</button>
+          <button class="btn-ghost" id="scalePresetPlusMinus">Use +/− scale</button>
+          <button class="btn" id="addScaleRowBtn">Add band</button>
+        </div>
+        <table>
+          <thead><tr><th>Letter</th><th></th><th>Minimum %</th><th>Range</th><th></th></tr></thead>
+          <tbody id="scaleList"></tbody>
+        </table>
+        <div id="scaleWarn" class="weight-warn" style="display:none;"></div>
+        <p class="field-note">A grade is rounded first, then matched to the highest band it reaches.</p>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Rounding</h3>
+          <div class="field-row">
+            <label for="roundingSelect">Show grades to</label>
+            <select id="roundingSelect"></select>
+          </div>
+          <p class="field-note">Applies to the percentages shown on screen, in reports, and in exports — and decides borderline letters.</p>
+        </div>
+
+        <div class="card">
+          <h3>Late work</h3>
+          <label class="check-row">
+            <input type="checkbox" id="lateEnabled">
+            <span>Deduct points for late work</span>
+          </label>
+          <div id="lateFields">
+            <div class="field-row">
+              <label for="latePerDay">Penalty per day</label>
+              <input type="number" id="latePerDay" min="0" max="100" step="1" style="width:100px;">
+            </div>
+            <div class="field-row">
+              <label for="lateMax">Maximum penalty</label>
+              <input type="number" id="lateMax" min="0" max="100" step="1" style="width:100px;">
+            </div>
+          </div>
+          <p class="field-note" id="lateSummary"></p>
+        </div>
       </div>
     </div>
 
